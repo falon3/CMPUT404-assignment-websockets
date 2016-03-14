@@ -137,7 +137,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     //sendJSONXMLHTTPRequest('/entity/'+ entity, data, function(data){});
     // use sockets now
-    socket.send(JSON.stringify(world[entity]));
+    //socket.send(JSON.stringify(world[entity]));
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
 }
@@ -278,8 +278,8 @@ function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
-         // get the world
-         drawFrame();
+         // get the world as it is now and draw it
+         socket.send(JSON.stringify(world));
         //XXX: TODO What are you going to do here?
     };
     socket.onerror = function(msg) {
@@ -292,9 +292,8 @@ function wsSetup() {
             for (var key in message){
                 data = message[key];
                 world[key] = data;
-                drawFrame();
             }  
-           
+            drawNextFrame();
         } catch (e) {
             alert("socket on message: " + e);
         }

@@ -75,7 +75,11 @@ class Client:
 
 
 def set_listener( entity, data ):
-
+    # send update to all clients
+    update = {entity: data}
+    update = json.dumps(entity)
+    for client in clients:
+        client.put(update)
     ''' do something with the update ! '''
 
 myWorld.add_set_listener( set_listener )
