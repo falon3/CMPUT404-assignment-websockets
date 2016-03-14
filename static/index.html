@@ -137,7 +137,7 @@ function addEntity(entity, data) {
     world[entity] = data;
     //sendJSONXMLHTTPRequest('/entity/'+ entity, data, function(data){});
     // use sockets now
-    //socket.send(JSON.stringify(world[entity]));
+    socket.send(JSON.stringify(world));
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
 }
@@ -271,15 +271,38 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 function update() {
     drawFrame();
-}
-
+};
+    
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function () {
+		 if (xhr.readyState==4) {
+			 try {
+				 if (xhr.status==200) {
+					 parsed = JSON.parse(xhr.responseText);
+					 callback(parsed);
+				 }
+			 } 
+			 catch(e) {
+				 alert('Error: ' + e.name);
+			 }
+		 }
+	};
+	//GET
+    xhr.open('GET', url);
+	xhr.send(); 
+}	 
 
 function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
          // get the world as it is now and draw it
-         socket.send(JSON.stringify(world));
+         sendJSONXMLHTTPRequest('/world',null,function (data){
+             world = data; //update our world to be what we got
+		     drawNextFrame();// signal something to draw
+	     });
+         //socket.send(JSON.stringify(world));
         //XXX: TODO What are you going to do here?
     };
     socket.onerror = function(msg) {
@@ -287,7 +310,7 @@ function wsSetup() {
     };
     socket.onmessage = function(msg) {  
         try {
-            debug("WebSocket Recv:" + msg.data);
+            //debug("WebSocket Recv:" + msg.data);
             var message = JSON.parse(msg.data);
             for (var key in message){
                 data = message[key];
